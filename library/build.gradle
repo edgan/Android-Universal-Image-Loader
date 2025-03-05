@@ -1,25 +1,24 @@
 apply plugin: 'com.android.library'
 
 android {
-    compileSdkVersion 28
-    buildToolsVersion "28.0.3"
+    compileSdkVersion 34
+
+    //compileOptions {
+    //    sourceCompatibility JavaVersion.VERSION_1_8
+    //    targetCompatibility JavaVersion.VERSION_1_8
+    //}
 
     defaultConfig {
         minSdkVersion 16
-        targetSdkVersion 28
-        versionCode 40
-        versionName "1.9.5"
+        targetSdkVersion 34
     }
 
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
-    }
+    namespace "com.nostra13.universalimageloader"
 }
 
 dependencies {
     testImplementation 'junit:junit:4.12'
-    testImplementation 'org.robolectric:robolectric:3.0-rc3'
+    testImplementation 'org.robolectric:robolectric:4.14.1'
     testImplementation 'com.squareup.assertj:assertj-android:1.0.0'
 }
 
@@ -27,8 +26,9 @@ dependencies {
 // build a jar with source files
 task sourcesJar(type: Jar) {
     from android.sourceSets.main.java.srcDirs
-    classifier = 'sources'
+    archiveClassifier.set('sources')
 }
+
 artifacts {
     archives sourcesJar
 }
@@ -42,4 +42,4 @@ android.libraryVariants.all { variant ->
     artifacts.add('archives', task);
 }
 
-apply from: '../gradle/maven_push.gradle'
+//apply from: '../gradle/maven_push.gradle'

@@ -76,7 +76,12 @@ public class ImageViewAware extends ViewAware {
 		if (width <= 0) {
 			ImageView imageView = (ImageView) viewRef.get();
 			if (imageView != null) {
+				// First try to use the public API method
 				width = imageView.getMaxWidth();
+				// If that doesn't return a valid width, try to use reflection as a fallback
+				if (width <= 0) {
+					width = getImageViewFieldValue(imageView, "mMaxWidth");
+				}
 			}
 		}
 		return width;
@@ -93,7 +98,12 @@ public class ImageViewAware extends ViewAware {
 		if (height <= 0) {
 			ImageView imageView = (ImageView) viewRef.get();
 			if (imageView != null) {
+				// First try to use the public API method
 				height = imageView.getMaxHeight();
+				// If that doesn't return a valid height, try to use reflection as a fallback
+				if (height <= 0) {
+					height = getImageViewFieldValue(imageView, "mMaxHeight");
+				}
 			}
 		}
 		return height;
@@ -124,5 +134,26 @@ public class ImageViewAware extends ViewAware {
 	@Override
 	protected void setImageBitmapInto(Bitmap bitmap, View view) {
 		((ImageView) view).setImageBitmap(bitmap);
+	}
+
+	/**
+	 * This method is used to get field values of ImageView through reflection. However,
+	 * accessing private fields via reflection can cause issues on newer Android versions.
+	 * This method now provides only basic implementation with error handling.
+	 */
+	private static int getImageViewFieldValue(Object object, String fieldName) {
+		int value = 0;
+		try {
+			Field field = ImageView.class.getDeclaredField(fieldName);
+			field.setAccessible(true);
+			int fieldValue = (Integer) field.get(object);
+			if (fieldValue > 0 && fieldValue < Integer.MAX_VALUE) {
+				value = fieldValue;
+			}
+		} catch (Exception e) {
+			L.e("Can't read ImageView field value", e);
+			// Just return 0 if we can't access the field
+		}
+		return value;
 	}
 }

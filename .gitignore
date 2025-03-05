@@ -30,5 +30,8 @@ out/
 .gradle/
 build/
 
+# Visual Studio
+.vscode/
+
 # Private
 signing.properties

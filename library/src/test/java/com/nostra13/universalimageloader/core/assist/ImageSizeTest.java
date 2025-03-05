@@ -15,6 +15,7 @@ import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 
 @RunWith(RobolectricTestRunner.class)
@@ -25,7 +26,8 @@ public class ImageSizeTest {
 
 	@Before
 	public void setUp() throws Exception {
-		mActivity = new Activity();
+		// Use Robolectric to create a properly initialized Activity
+		mActivity = Robolectric.setupActivity(Activity.class);
 
 		// Make and set view with some prelim values to test
 		mView = new TestImageView(mActivity);
