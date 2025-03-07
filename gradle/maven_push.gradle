@@ -65,6 +65,11 @@ afterEvaluate { project ->
                 artifactId = POM_ARTIFACT_ID
                 version = VERSION_NAME
 
+                from components.release
+
+                artifact androidSourcesJar
+                artifact androidJavadocsJar
+
                 pom {
                     name = POM_NAME
                     packaging = POM_PACKAGING
@@ -92,13 +97,9 @@ afterEvaluate { project ->
                         }
                     }
                 }
-                
-                artifact("$buildDir/outputs/aar/${project.getName()}-release.aar")
-                artifact androidSourcesJar
-                artifact androidJavadocsJar
             }
         }
-        
+
         repositories {
             maven {
                 url = isReleaseBuild() ? getReleaseRepositoryUrl() : getSnapshotRepositoryUrl()
@@ -108,6 +109,18 @@ afterEvaluate { project ->
                 }
             }
         }
+    }
+
+    tasks.withType(PublishToMavenRepository) {
+        dependsOn tasks.withType(BundleAar)
+        dependsOn androidSourcesJar
+        dependsOn androidJavadocsJar
+    }
+
+    tasks.withType(PublishToMavenLocal) {
+        dependsOn tasks.withType(BundleAar)
+        dependsOn androidSourcesJar
+        dependsOn androidJavadocsJar
     }
 
     signing {
