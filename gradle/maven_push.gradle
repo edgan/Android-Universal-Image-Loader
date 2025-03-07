@@ -65,9 +65,9 @@ afterEvaluate { project ->
                 artifactId = POM_ARTIFACT_ID
                 version = VERSION_NAME
 
-                // Manually specify the artifacts
+                // Manually specify the artifacts - use a safe relative path and assembleRelease task
                 artifact("$buildDir/outputs/aar/${project.getName()}-release.aar") {
-                    builtBy tasks.named("bundleRelease")
+                    builtBy tasks.named("assembleRelease")
                 }
                 artifact androidSourcesJar
                 artifact androidJavadocsJar
@@ -114,16 +114,17 @@ afterEvaluate { project ->
     }
 
     // Make sure all required tasks run before publishing
-    tasks.withType(PublishToMavenRepository) {
-        dependsOn 'bundleRelease'
-        dependsOn androidSourcesJar
-        dependsOn androidJavadocsJar
+    // Use assembleRelease which should be available in all AGP versions
+    tasks.withType(PublishToMavenRepository) { task ->
+        task.dependsOn 'assembleRelease'
+        task.dependsOn androidSourcesJar
+        task.dependsOn androidJavadocsJar
     }
 
-    tasks.withType(PublishToMavenLocal) {
-        dependsOn 'bundleRelease'
-        dependsOn androidSourcesJar
-        dependsOn androidJavadocsJar
+    tasks.withType(PublishToMavenLocal) { task ->
+        task.dependsOn 'assembleRelease'
+        task.dependsOn androidSourcesJar
+        task.dependsOn androidJavadocsJar
     }
 
     signing {
