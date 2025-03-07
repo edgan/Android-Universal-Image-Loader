@@ -40,7 +40,13 @@ def getRepositoryPassword() {
 }
 
 afterEvaluate { project ->
-    task androidJavadocs(type: Javadoc) {
+    // Standard tasks that match the expected names in the publication
+    task sourcesJar(type: Jar) {
+        archiveClassifier.set('sources')
+        from android.sourceSets.main.java.srcDirs
+    }
+
+    task javadocs(type: Javadoc) {
         source = android.sourceSets.main.java.srcDirs
         options {
             encoding = "UTF-8"
@@ -48,14 +54,9 @@ afterEvaluate { project ->
         classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
     }
 
-    task androidJavadocsJar(type: Jar, dependsOn: androidJavadocs) {
+    task javadocsJar(type: Jar, dependsOn: javadocs) {
         archiveClassifier.set('javadoc')
-        from androidJavadocs.destinationDir
-    }
-
-    task androidSourcesJar(type: Jar) {
-        archiveClassifier.set('sources')
-        from android.sourceSets.main.java.srcDirs
+        from javadocs.destinationDir
     }
 
     publishing {
@@ -65,12 +66,12 @@ afterEvaluate { project ->
                 artifactId = POM_ARTIFACT_ID
                 version = VERSION_NAME
 
-                // Manually specify the artifacts - use a safe relative path and assembleRelease task
+                // Use proper task names that match the standard naming conventions
                 artifact("$buildDir/outputs/aar/${project.getName()}-release.aar") {
                     builtBy tasks.named("assembleRelease")
                 }
-                artifact androidSourcesJar
-                artifact androidJavadocsJar
+                artifact sourcesJar
+                artifact javadocsJar
 
                 pom {
                     name = POM_NAME
@@ -113,18 +114,14 @@ afterEvaluate { project ->
         }
     }
 
-    // Make sure all required tasks run before publishing
-    // Use assembleRelease which should be available in all AGP versions
-    tasks.withType(PublishToMavenRepository) { task ->
-        task.dependsOn 'assembleRelease'
-        task.dependsOn androidSourcesJar
-        task.dependsOn androidJavadocsJar
-    }
-
-    tasks.withType(PublishToMavenLocal) { task ->
-        task.dependsOn 'assembleRelease'
-        task.dependsOn androidSourcesJar
-        task.dependsOn androidJavadocsJar
+    // Explicitly register the task dependencies in advance
+    project.tasks.whenTaskAdded { task ->
+        if (task.name == 'generatePomFileForMavenPublication' || 
+            task.name == 'publishMavenPublicationToMavenLocal') {
+            task.dependsOn 'assembleRelease'
+            task.dependsOn 'sourcesJar'
+            task.dependsOn 'javadocsJar'
+        }
     }
 
     signing {
