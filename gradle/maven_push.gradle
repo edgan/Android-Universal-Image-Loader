@@ -65,8 +65,10 @@ afterEvaluate { project ->
                 artifactId = POM_ARTIFACT_ID
                 version = VERSION_NAME
 
-                from components.release
-
+                // Manually specify the artifacts
+                artifact("$buildDir/outputs/aar/${project.getName()}-release.aar") {
+                    builtBy tasks.named("bundleRelease")
+                }
                 artifact androidSourcesJar
                 artifact androidJavadocsJar
 
@@ -111,14 +113,15 @@ afterEvaluate { project ->
         }
     }
 
+    // Make sure all required tasks run before publishing
     tasks.withType(PublishToMavenRepository) {
-        dependsOn tasks.withType(BundleAar)
+        dependsOn 'bundleRelease'
         dependsOn androidSourcesJar
         dependsOn androidJavadocsJar
     }
 
     tasks.withType(PublishToMavenLocal) {
-        dependsOn tasks.withType(BundleAar)
+        dependsOn 'bundleRelease'
         dependsOn androidSourcesJar
         dependsOn androidJavadocsJar
     }
